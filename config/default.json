@@ -2,5 +2,15 @@
   "server" : {
     "host" : "0.0.0.0",
     "port" : 8080
+  },
+  "logger" : {
+    "level" : "warn",
+    "file" : "server.log"
+  },
+  "storage" : {
+    "path" : "storage"
+  },
+  "upload": {
+    "secret": "CHANGE_THIS_TO_SOMETHING_STRONG"
   }
 }

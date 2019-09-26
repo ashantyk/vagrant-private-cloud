@@ -2,7 +2,7 @@
   "name": "vagrant-private-cloud",
   "version": "1.0.0",
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
-  "main": "src/server.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "config": "^3.2.2",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "winston": "^3.2.1"
   },
   "devDependencies": {}
 }
