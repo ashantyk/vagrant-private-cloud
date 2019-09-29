@@ -12,5 +12,8 @@
   },
   "upload": {
     "secret": "CHANGE_THIS_TO_SOMETHING_STRONG"
+  },
+  "cache" : {
+    "warmUp" : true
   }
 }

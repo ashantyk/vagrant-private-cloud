@@ -7,10 +7,14 @@ const LOGGER_FILE = config.get('logger.file');
 const logger = winston.createLogger({
     level: LOGGER_LEVEL,
     format: winston.format.json(),
-    transports: [
-        new winston.transports.File({ filename: LOGGER_FILE })
-    ]
+    transports: []
 });
+
+if (process.env.NODE_ENV !== 'test') {
+    logger.add(new winston.transports.File({
+        filename: LOGGER_FILE
+    }));
+}
 
 if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console({
