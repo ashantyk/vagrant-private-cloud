@@ -21,26 +21,24 @@ class Cache {
 
         storageFoldersNames.forEach(function(name){
 
-            let path = path.join(STORAGE_FOLDER, name);
-            let stat = fs.statSync(path);
+            let catalogPath = path.join(STORAGE_FOLDER, name);
+            let stat = fs.statSync(catalogPath);
 
             if(stat.isDirectory()) {
                 catalogs.push(name);
+                Cache.warmUpFilesInFolder(catalogPath);
             }
-
-            Cache.warmUpFilesInFolder(path);
-
         });
 
     }
 
-    static warmUpFilesInFolder(path) {
+    static warmUpFilesInFolder(catalogPath) {
 
-        let files = fs.readdirSync(path);
+        let files = fs.readdirSync(catalogPath);
 
         files.forEach(function(fileName){
 
-            let stat = fs.statSync(path);
+            let stat = fs.statSync(catalogPath + "/" + path);
             if(stat.isDirectory()) {
                 return;
             }

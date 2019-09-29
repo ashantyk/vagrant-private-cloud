@@ -1,23 +1,26 @@
+module.exports = async function (request, response) {
 
+    let catalogName = request.params.folder;
 
-const getList = function(request, response, next) {
+    let exists = await this.db.catalogExists(catalogName);
 
+    if (!exists) {
+        return response.code(404).send({'error': 'Catalog not found!'});
+    }
 
-
-};
-
-const respond = function(request, response, next){
-
-    let catalog = {
-        "name": request.params.folder,
+    let catalogContents = {
+        "name": catalogName,
         "versions": []
     };
 
-    response.status(200).json(catalog);
-    next();
+    let catalogItems = await this.db.getCatalogItems(catalogName);
+
+    if (catalogItems.length) {
+        catalogItems.forEach((item) => {
+            debugger;
+        });
+    }
+
+    response.code(200).send(catalogContents);
 
 };
-
-module.exports = [
-    respond
-];

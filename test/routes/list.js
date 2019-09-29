@@ -32,11 +32,10 @@ describe('GET /catalog/:folder', function() {
 
     it('responds with listing', function(done) {
 
-        request(app)
+        request(app.server)
             .get('/catalog/' + CATALOG_FOLDER)
-            //.expect('Content-Type', /application\/json/)
+            .expect('Content-Type', /application\/json/)
             .expect(200, function(error, response){
-                debugger;
                 assert.equal(error, null);
                 done();
             });
@@ -45,8 +44,9 @@ describe('GET /catalog/:folder', function() {
 
     it('responds with 404 for invalid catalog', function(done) {
 
-        request(app)
+        request(app.server)
             .get('/catalog/folderThatDoesntExist')
+            .expect('Content-Type', /application\/json/)
             .expect(404, done);
 
     });

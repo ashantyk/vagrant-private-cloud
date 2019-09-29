@@ -10,9 +10,13 @@
   "license": "MIT",
   "dependencies": {
     "config": "^3.2.2",
-    "express": "^4.17.1",
-    "winston": "^3.2.1",
-    "ioredis": "^4.14.1"
+    "fastify": "^2.8.0",
+    "fastify-multipart": "^1.0.2",
+    "fastify-plugin": "^1.6.0",
+    "fastify-redis": "^3.1.1",
+    "fastify-static": "^2.5.0",
+    "ioredis": "^4.14.1",
+    "pump": "^3.0.0"
   },
   "devDependencies": {
     "mocha": "^6.2.0",
