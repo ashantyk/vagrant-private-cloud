@@ -4,30 +4,43 @@ const config = require('config');
 const fs = require('fs');
 const assert = require('assert');
 
-const CATALOG_PATH = config.get('storage.path');
-const CATALOG_FOLDER = 'testFolder';
-const CATALOG_FOLDER_FILE = 'virtualbox-2019.09.27.box';
-const CATALOG_FOLDER_FILE_CONTENTS = 'randomBytesData';
+const STORAGE_FOLDER = config.get('storage.path');
+const CATALOG_FOLDER = "testFolder";
+const CATALOG_FOLDER_FILE = "virtualbox-2019.09.29.box";
+const SECRET = config.get('upload.secret');
 
 describe('GET /catalog/:folder', function() {
 
-    before(function(){
+    before(function(done){
 
-        try {
-            fs.mkdirSync(CATALOG_PATH + "/" + CATALOG_FOLDER);
-        } catch (error) {
-            if (error.code !== "EEXIST") {
-                throw error;
-            }
-        }
-
-        fs.writeFileSync(CATALOG_PATH + "/" + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, CATALOG_FOLDER_FILE_CONTENTS);
+        request(app.server)
+            .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .auth(SECRET, SECRET)
+            .attach('box', './test/dummyFile.box')
+            .expect(200, function(error, response){
+                fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function(error){
+                    done(error || undefined);
+                });
+            });
 
     });
 
-    after(function(){
-        fs.unlinkSync(CATALOG_PATH + "/" + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
-        fs.rmdirSync(CATALOG_PATH + "/" + CATALOG_FOLDER);
+    after(function(done){
+
+        request(app.server)
+            .delete('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .auth(SECRET, SECRET)
+            .expect(200, done);
+
+    });
+
+    it('responds with 404 for invalid catalog', function(done) {
+
+        request(app.server)
+            .get('/catalog/folderThatDoesntExist')
+            .expect('Content-Type', /application\/json/)
+            .expect(404, done);
+
     });
 
     it('responds with listing', function(done) {
@@ -41,15 +54,5 @@ describe('GET /catalog/:folder', function() {
             });
 
     });
-
-    it('responds with 404 for invalid catalog', function(done) {
-
-        request(app.server)
-            .get('/catalog/folderThatDoesntExist')
-            .expect('Content-Type', /application\/json/)
-            .expect(404, done);
-
-    });
-
 
 });

@@ -1,7 +1,6 @@
 const server = require('fastify');
 const serverStaticPlugin = require('fastify-static');
-const redisPlugin = require('fastify-redis');
-const dbPlugin = require('./plugins/db.js');
+const storagePlugin = require('./plugins/storage.js');
 const multipartPlugin = require('fastify-multipart');
 const config = require('config');
 const path = require('path');
@@ -27,8 +26,9 @@ const fastify = server({
 fastify.register(serverStaticPlugin, {
     root: path.join(__dirname, "../" , STORAGE_FOLDER),
 });
-fastify.register(redisPlugin);
-fastify.register(dbPlugin);
+fastify.register(storagePlugin, {
+    folder: STORAGE_FOLDER
+});
 fastify.register(multipartPlugin, {
     limits: {
         fieldNameSize: 10,    // Max field name size in bytes
