@@ -16,9 +16,29 @@ module.exports = async function (request, response) {
     let catalogItems = await this.storage.getCatalogItems(catalogName);
 
     if (catalogItems.length) {
+
+        let versions = {};
+
         catalogItems.forEach((item) => {
-            // TODO
+
+            if (typeof versions[item.version] === 'undefined') {
+                versions[item.version] = {
+                    'version' : item.version,
+                    'providers' : []
+                }
+            }
+
+            versions[item.version].providers.push({
+                'name' : item.provider,
+                'url': "http://" + request.hostname + "/catalog/" + catalogName + "/" + item.file,
+                'checksum_type' : item.hashType,
+                'checksum': item.hash
+            })
+
         });
+
+        catalogContents.versions = Object.values(versions);
+
     }
 
     response.code(200).send(catalogContents);

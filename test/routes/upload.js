@@ -44,8 +44,10 @@ describe('POST /catalog/:folder/:file', function() {
     });
 
     after(async function(){
-        await fsp.unlink(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
-        await fsp.rmdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+        try {
+            await fsp.unlink(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
+            await fsp.rmdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+        } catch (error) {}
     })
 
 });
