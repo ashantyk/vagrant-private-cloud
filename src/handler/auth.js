@@ -11,7 +11,9 @@ module.exports = async function (request, response) {
     }
 
     let credentials = Buffer.from(hash, 'base64').toString('utf-8');
-    let [username, password] = credentials.split(":");
+
+    let firstColonIndex = credentials.indexOf(':');
+    let password = credentials.slice(firstColonIndex + 1);
 
     if (password !== response.context.config.secret) {
         return response.code(401).send();

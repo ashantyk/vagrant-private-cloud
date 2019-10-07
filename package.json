@@ -4,7 +4,7 @@
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha test/routes/*"
+    "test": "mocha --exit test/routes/*"
   },
   "engines": {
     "node": ">=10"

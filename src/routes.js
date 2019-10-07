@@ -6,6 +6,8 @@ const UPLOAD_HANDER = require('./handler/upload');
 const DELETE_HANDER = require('./handler/delete');
 const AUTH_HANDLER = require('./handler/auth');
 
+const WRITE_OPERATIONS_SECRET = config.get('upload.secret');
+
 module.exports = [
     {
         method: 'GET',
@@ -28,7 +30,7 @@ module.exports = [
         method: 'POST',
         url: '/catalog/:folder/:file',
         config: {
-            secret: config.get('upload.secret')
+            secret: WRITE_OPERATIONS_SECRET
         },
         preValidation: AUTH_HANDLER,
         handler: UPLOAD_HANDER
@@ -37,7 +39,7 @@ module.exports = [
         method: 'DELETE',
         url: '/catalog/:folder/:file',
         config: {
-            secret: config.get('upload.secret')
+            secret: WRITE_OPERATIONS_SECRET
         },
         preValidation: AUTH_HANDLER,
         handler: DELETE_HANDER

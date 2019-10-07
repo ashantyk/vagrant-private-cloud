@@ -1,6 +1,3 @@
-const fs = require('fs').promises;
-const config = require('config');
-
 module.exports = async function (request, response) {
 
     let catalogName = request.params.folder;

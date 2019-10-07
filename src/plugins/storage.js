@@ -13,11 +13,24 @@ const HASH_STORE = {};
 
 class StorageHelper {
 
+    /**
+     * Class constructor
+     *
+     * @param {object} fastify
+     * @param {object} options {
+     *     @type {string} folder
+     * }
+     */
     constructor(fastify, options) {
         this.fastify = fastify;
         this.options = options;
     }
 
+    /**
+     * Storage warm-up - calculate hashes for catalog files at server start
+     *
+     * @returns {Promise<void>}
+     */
     async warmUp() {
 
         this.fastify.log.info("Warming up...");
@@ -39,10 +52,21 @@ class StorageHelper {
 
     }
 
+    /**
+     * Get relative file system path for a catalog folder
+     *
+     * @param {string} catalogName
+     * @returns {string}
+     */
     getCatalogPath(catalogName) {
         return this.options.folder + "/" + catalogName;
     }
 
+    /**
+     * Get available catalog names
+     *
+     * @returns {Promise<string[]>}
+     */
     async getCatalogNames() {
 
         let folderNames = await fsp.readdir(this.options.folder);
@@ -66,6 +90,12 @@ class StorageHelper {
 
     }
 
+    /**
+     * Check if catalog exists
+     *
+     * @param {string} catalogName
+     * @returns {Promise<boolean>}
+     */
     async catalogExists (catalogName) {
         let path = this.getCatalogPath(catalogName);
         try {
@@ -76,6 +106,13 @@ class StorageHelper {
         return true;
     }
 
+    /**
+     * Check if file exists in catalog
+     *
+     * @param {string} catalogName
+     * @param {string} fileName
+     * @returns {Promise<boolean>}
+     */
     async fileExists (catalogName, fileName) {
         let path = this.getCatalogPath(catalogName) + "/" + fileName;
         try {
@@ -86,17 +123,37 @@ class StorageHelper {
         return true;
     }
 
+    /**
+     * Get ReadStream from a catalog file
+     *
+     * @param {string} catalogName
+     * @param {string} fileName
+     * @returns {Promise<ReadStream>}
+     */
     async getFileStreamFromCatalog(catalogName, fileName) {
         const path = this.getCatalogPath(catalogName) + "/" + fileName;
         return fs.createReadStream(path, {encoding: 'binary'})
     }
 
+    /**
+     * Get size for a catalog file
+     *
+     * @param {string} catalogName
+     * @param {string} fileName
+     * @returns {Promise<number>}
+     */
     async getFileSizeFromCatalog(catalogName, fileName) {
         const path = this.getCatalogPath(catalogName) + "/" + fileName;
         const stats = await fsp.stat(path);
         return stats.size;
     }
 
+    /**
+     * Check if  catalog is writeable
+     *
+     * @param {string} catalogName
+     * @returns {Promise<boolean>}
+     */
     async catalogIsWriteable (catalogName) {
         let path = this.getCatalogPath(catalogName);
         try {
@@ -107,6 +164,12 @@ class StorageHelper {
         return true;
     }
 
+    /**
+     * Create catalog
+     *
+     * @param {string} catalogName
+     * @returns {Promise<boolean>}
+     */
     async createCatalog (catalogName) {
         let path = this.getCatalogPath(catalogName);
         try {
@@ -117,12 +180,25 @@ class StorageHelper {
         return true;
     }
 
+    /**
+     * Remove file from catalog
+     *
+     * @param {string} catalogName
+     * @param {string} fileName
+     * @returns {Promise<void>}
+     */
     async removeFromCatalog (catalogName, fileName) {
         let path = this.getCatalogPath(catalogName) + "/" + fileName;
         await fsp.unlink(path);
         delete HASH_STORE[path];
     }
 
+    /**
+     * Delete entire catalog
+     *
+     * @param {string} catalogName
+     * @returns {Promise<boolean>}
+     */
     async deleteCatalog (catalogName) {
 
         if(!await this.catalogExists(catalogName)) {
@@ -142,6 +218,12 @@ class StorageHelper {
 
     }
 
+    /**
+     * Get catalog items
+     *
+     * @param {string} catalogName
+     * @returns {Promise<object[]>}
+     */
     async getCatalogItems(catalogName) {
 
         let path = this.getCatalogPath(catalogName);
@@ -177,6 +259,12 @@ class StorageHelper {
         return items;
     }
 
+    /**
+     * Get catalog file names
+     *
+     * @param {string} catalogName
+     * @returns {Promise<string[]>}
+     */
     async getCatalogFiles(catalogName) {
 
         let path = this.getCatalogPath(catalogName);
@@ -208,6 +296,14 @@ class StorageHelper {
         return items;
     }
 
+    /**
+     * Write file in catalog using a file stream
+     *
+     * @param {string} catalogName
+     * @param {string} fileName
+     * @param {ReadableStream} fileStream
+     * @returns {Promise<void>}
+     */
     async writeInCatalog(catalogName, fileName, fileStream) {
         let path = this.getCatalogPath(catalogName) + "/" + fileName;
         let writeStream = fs.createWriteStream(path);
@@ -215,6 +311,12 @@ class StorageHelper {
         HASH_STORE[path] = await this.computeFileHash(path);
     }
 
+    /**
+     * Compute hash (sha1) for a file
+     *
+     * @param {string} path
+     * @returns {Promise<string>}
+     */
     computeFileHash(path) {
 
         return new Promise((resolve, reject) => {
