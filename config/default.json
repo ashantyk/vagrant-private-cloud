@@ -13,8 +13,5 @@
   "upload": {
     "secret": "CHANGE_THIS_TO_SOMETHING_STRONG",
     "maxSize": 1073741824
-  },
-  "cache" : {
-    "warmUp" : true
   }
 }

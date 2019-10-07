@@ -1,44 +1,50 @@
 const request = require('supertest');
 const app = require('../../src/server.js');
-const config = require('config');
 const fs = require('fs');
 const assert = require('assert');
+const config = require('config');
 
-const CATALOG_PATH = config.get('storage.path');
+const STORAGE_FOLDER = config.get('storage.path');
+const SECRET = config.get('upload.secret');
 const CATALOG_FOLDER = 'testFolder';
 const CATALOG_FOLDER_FILE = 'testFile';
-const CATALOG_FOLDER_FILE_CONTENTS = 'test';
+const DUMMY_FILE = './test/dummyFile.box';
+const DUMMY_FILE_CONTENTS = fs.readFileSync(DUMMY_FILE, {encoding: 'utf-8'});
 
 describe('GET /catalog/:folder/:file', function() {
 
-    before(function(){
+    before(function(done){
 
-        try {
-            fs.mkdirSync(CATALOG_PATH + "/" + CATALOG_FOLDER);
-        } catch (error) {
-            if (error.code !== "EEXIST") {
-                throw error;
-            }
-        }
-
-        fs.writeFileSync(CATALOG_PATH + "/" + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, CATALOG_FOLDER_FILE_CONTENTS);
+        request(app.server)
+            .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .auth(SECRET, SECRET)
+            .attach('box', DUMMY_FILE)
+            .expect(200, function(error, response) {
+                fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function(error){
+                    done(error || undefined);
+                });
+            });
 
     });
 
-    after(function(){
-        fs.unlinkSync(CATALOG_PATH + "/" + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
-        fs.rmdirSync(CATALOG_PATH + "/" + CATALOG_FOLDER);
+    after(function(done){
+
+        request(app.server)
+            .delete('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .auth(SECRET, SECRET)
+            .expect(200, done);
+
     });
 
     it('responds with file', function(done) {
 
-        request(app)
+        request(app.server)
             .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
             .expect('Content-Type', /application\/octet-stream/)
-            .expect('Content-Length', CATALOG_FOLDER_FILE_CONTENTS.length.toString())
+            .expect('Content-Length', DUMMY_FILE_CONTENTS.length.toString())
             .expect(200, function(error, response){
                 assert.equal(error, null);
-                assert.equal(response.body.toString(), CATALOG_FOLDER_FILE_CONTENTS);
+                assert.equal(response.body.toString(), DUMMY_FILE_CONTENTS);
                 done();
             });
 
@@ -46,7 +52,7 @@ describe('GET /catalog/:folder/:file', function() {
 
     it('responds with 404 for invalid catalog', function(done) {
 
-        request(app)
+        request(app.server)
             .get('/catalog/folderThatDoesntExist/' + CATALOG_FOLDER_FILE)
             .expect(404, done);
 
@@ -54,7 +60,7 @@ describe('GET /catalog/:folder/:file', function() {
 
     it('responds with 404 for invalid catalog file', function(done) {
 
-        request(app)
+        request(app.server)
             .get('/catalog/' + CATALOG_FOLDER + '/someInexistentFile')
             .expect(404, done);
 

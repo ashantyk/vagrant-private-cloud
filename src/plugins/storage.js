@@ -19,10 +19,24 @@ class StorageHelper {
     }
 
     async warmUp() {
+
+        this.fastify.log.info("Warming up...");
+
         let catalogNames = await this.getCatalogNames();
+
         for (let catalogName of catalogNames) {
-            // TODO
+
+            let fileNames = await this.getCatalogFiles(catalogName);
+            let catalogPath = this.getCatalogPath(catalogName);
+
+            for (let fileName of fileNames) {
+                HASH_STORE[path] = await this.computeFileHash(catalogPath + "/" + fileName);
+            }
+
         }
+
+        this.fastify.log.info("Warm-up done.");
+
     }
 
     getCatalogPath(catalogName) {
@@ -70,6 +84,17 @@ class StorageHelper {
             return false;
         }
         return true;
+    }
+
+    async getFileStreamFromCatalog(catalogName, fileName) {
+        const path = this.getCatalogPath(catalogName) + "/" + fileName;
+        return fs.createReadStream(path, {encoding: 'binary'})
+    }
+
+    async getFileSizeFromCatalog(catalogName, fileName) {
+        const path = this.getCatalogPath(catalogName) + "/" + fileName;
+        const stats = await fsp.stat(path);
+        return stats.size;
     }
 
     async catalogIsWriteable (catalogName) {
@@ -120,7 +145,7 @@ class StorageHelper {
     async getCatalogItems(catalogName) {
 
         let path = this.getCatalogPath(catalogName);
-        let fileNames = await fsp.readdir(path);
+        let fileNames = await this.getCatalogFiles(catalogName);
         let items = [];
 
         for (let name of fileNames) {
@@ -128,12 +153,6 @@ class StorageHelper {
             let filePath = path + "/" + name;
 
             if (typeof HASH_STORE[filePath] !== 'string') {
-                continue;
-            }
-
-            let stat = await fsp.stat(filePath);
-
-            if (!stat.isFile()) {
                 continue;
             }
 
@@ -152,6 +171,37 @@ class StorageHelper {
                 hashType: DEFAULT_HASH_TYPE,
                 hash: HASH_STORE[filePath]
             });
+
+        }
+
+        return items;
+    }
+
+    async getCatalogFiles(catalogName) {
+
+        let path = this.getCatalogPath(catalogName);
+        let fileNames = await fsp.readdir(path);
+        let items = [];
+
+        for (let name of fileNames) {
+
+            let filePath = path + "/" + name;
+
+            if (typeof HASH_STORE[filePath] !== 'string') {
+                continue;
+            }
+
+            let stat = await fsp.stat(filePath);
+
+            if (!stat.isFile()) {
+                continue;
+            }
+
+            if (!BOX_FILENAME_PATTERN.test(name)) {
+                continue;
+            }
+
+            items.push(name);
 
         }
 
@@ -199,5 +249,10 @@ class StorageHelper {
 }
 
 module.exports = fastifyPlugin(async function storage (fastify, options) {
-    fastify.decorate('storage', new StorageHelper(fastify, options));
+    let storagePlugin = new StorageHelper(fastify, options);
+    await storagePlugin.warmUp();
+    fastify.decorate('storage', storagePlugin);
+}, {
+    name: 'storage',
+    fastify: '2.x',
 });
