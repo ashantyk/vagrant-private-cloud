@@ -5,7 +5,7 @@
   },
   "logger" : {
     "level" : "warn",
-    "file" : "server.log"
+    "file" : "/var/log/vagrant-private-cloud.log"
   },
   "storage" : {
     "path" : "storage"

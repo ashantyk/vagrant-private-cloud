@@ -15,25 +15,32 @@ OP="$1"
 log "[postinst]" Running "$OP" for package "$PACKAGE_NAME"
 
 case "${OP}" in
-    install)
+    install|configure)
     
         if [ ! -d ${BASE_DIR}/storage ]; then
             mkdir -p ${BASE_DIR}/storage
         fi
-        npm install --prefix "${BASE_DIR}"
+        npm install --quiet --only=prod --prefix "${BASE_DIR}"
+        adduser --system --no-create-home --group vagrant
+        usermod -a -G syslog vagrant 
+        chown vagrant:vagrant ${BASE_DIR} -R
         systemctl enable "${SERVICE_NAME}" >/dev/null || true
         systemctl start "${SERVICE_NAME}"|| log "Failed to start ${SERVICE_NAME} service"
 
     ;;
-    update)
+    update|upgrade)
 
         if [ ! -d ${BASE_DIR}/storage ]; then
             mkdir -p ${BASE_DIR}/storage
         fi
-        npm update --prefix "${BASE_DIR}"
+        npm update --quiet --only=prod --prefix "${BASE_DIR}"
+        chown vagrant:vagrant ${BASE_DIR} -R
         systemctl --system daemon-reload > /dev/null || true
         systemctl restart "${SERVICE_NAME}" || log "Failed to restart ${SERVICE_NAME} service"
 
+    ;;
+    abort-upgrade)
+        # do nothing
     ;;
     *)
         log "postinst called with unknown argument" ${OP} >&2

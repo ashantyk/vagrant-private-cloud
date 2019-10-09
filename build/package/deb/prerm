@@ -15,10 +15,13 @@ OP="$1"
 log "[prerm]" Running "$OP" for package "$PACKAGE_NAME"
 
 case "${OP}" in
-    remove|update)
+    remove|update|upgrade)
 
         systemctl stop "${SERVICE_NAME}" || log "Failed to stop ${SERVICE_NAME} service"
 
+    ;;
+    failed-upgrade)
+        # do nothing
     ;;
     *)
         log "prerm called with unknown argument" ${OP} >&2

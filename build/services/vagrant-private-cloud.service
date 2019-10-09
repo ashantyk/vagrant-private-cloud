@@ -14,8 +14,8 @@ RestartSec=10
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=vagrant-private-cloud
-User=nobody
-Group=nogroup
+User=vagrant
+Group=vagrant
 
 [Install]
 WantedBy=multi-user.target

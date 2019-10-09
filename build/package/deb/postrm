@@ -14,7 +14,7 @@ OP="$1"
 log "[postrm]" Running "$OP" for package "$PACKAGE_NAME"
 
 case "${OP}" in
-    remove|update)
+    remove|update|upgrade)
 
         systemctl --system daemon-reload > /dev/null || true
 
@@ -24,7 +24,18 @@ case "${OP}" in
         if [ -d ${BASE_DIR}/storage ]; then
             rm -rf ${BASE_DIR}/storage
         fi
-        
+
+        if [ -d ${BASE_DIR}/node_modules ]; then
+            rm -rf ${BASE_DIR}/node_modules
+        fi
+
+        if [ -d ${BASE_DIR}/package-lock.json ]; then
+            rm -rf ${BASE_DIR}/package-lock.json
+        fi
+
+    ;;
+    abort-upgrade|failed-upgrade)
+        # do nothing
     ;;
     *)
         log "postrm called with unknown argument" ${OP} >&2
