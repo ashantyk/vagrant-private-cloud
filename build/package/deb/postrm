@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PACKAGE_NAME="vagrant-private-cloud"
+BASE_DIR="/opt/vagrant-private-cloud"
+
+function log() {
+    echo -e "[$PACKAGE_NAME][${USER}][`date`] - ${*}"
+}
+
+set -e
+
+OP="$1"
+
+log "[postrm]" Running "$OP" for package "$PACKAGE_NAME"
+
+case "${OP}" in
+    remove|update)
+
+        systemctl --system daemon-reload > /dev/null || true
+
+    ;;
+    purge)
+    
+        if [ -d ${BASE_DIR}/storage ]; then
+            rm -rf ${BASE_DIR}/storage
+        fi
+        
+    ;;
+    *)
+        log "postrm called with unknown argument" ${OP} >&2
+        exit 1
+    ;;
+esac
+
+exit 0

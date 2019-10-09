@@ -1,0 +1,21 @@
+[Unit]
+Description=Private (Atlas) Cloud for Vagrant Boxes
+Requires=network.target
+After=dhcpcd.service
+
+[Service]
+WorkingDirectory=/opt/vagrant-private-cloud
+ExecStart=/usr/bin/node --trace-warnings --stack-size=2015232 --expose-gc index.js
+Environment=NODE_ENV=production
+LimitNOFILE=64000:64000
+KillMode=control-group
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=vagrant-private-cloud
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+PACKAGE_NAME="vagrant-private-cloud"
+SERVICE_NAME="vagrant-private-cloud"
+BASE_DIR="/opt/vagrant-private-cloud"
+
+function log() {
+    echo -e "[$PACKAGE_NAME][${USER}][`date`] - ${*}"
+}
+
+set -e
+
+OP="$1"
+
+log "[postinst]" Running "$OP" for package "$PACKAGE_NAME"
+
+case "${OP}" in
+    install)
+    
+        if [ ! -d ${BASE_DIR}/storage ]; then
+            mkdir -p ${BASE_DIR}/storage
+        fi
+        npm install --prefix "${BASE_DIR}"
+        systemctl enable "${SERVICE_NAME}" >/dev/null || true
+        systemctl start "${SERVICE_NAME}"|| log "Failed to start ${SERVICE_NAME} service"
+
+    ;;
+    update)
+
+        if [ ! -d ${BASE_DIR}/storage ]; then
+            mkdir -p ${BASE_DIR}/storage
+        fi
+        npm update --prefix "${BASE_DIR}"
+        systemctl --system daemon-reload > /dev/null || true
+        systemctl restart "${SERVICE_NAME}" || log "Failed to restart ${SERVICE_NAME} service"
+
+    ;;
+    *)
+        log "postinst called with unknown argument" ${OP} >&2
+        exit 1
+    ;;
+esac
+
+exit 0
+

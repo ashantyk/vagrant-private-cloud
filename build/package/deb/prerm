@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PACKAGE_NAME="vagrant-private-cloud"
+SERVICE_NAME="vagrant-private-cloud"
+BASE_DIR="/opt/vagrant-private-cloud"
+
+function log() {
+    echo -e "[$PACKAGE_NAME][${USER}][`date`] - ${*}"
+}
+
+set -e
+
+OP="$1"
+
+log "[prerm]" Running "$OP" for package "$PACKAGE_NAME"
+
+case "${OP}" in
+    remove|update)
+
+        systemctl stop "${SERVICE_NAME}" || log "Failed to stop ${SERVICE_NAME} service"
+
+    ;;
+    *)
+        log "prerm called with unknown argument" ${OP} >&2
+        exit 1
+    ;;
+esac
+
+exit 0

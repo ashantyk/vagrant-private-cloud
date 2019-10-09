@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PACKAGE_NAME="vagrant-private-cloud"
+BASE_DIR="/opt/vagrant-private-cloud"
+
+function log() {
+    echo -e "[$PACKAGE_NAME][${USER}][`date`] - ${*}"
+}
+set -e
+
+OP="$1"
+
+log "[preinst]" Running "$OP" for package "$PACKAGE_NAME"
+
+exit 0
+
