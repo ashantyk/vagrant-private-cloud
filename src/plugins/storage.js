@@ -39,17 +39,23 @@ class StorageHelper {
 
         for (let catalogName of catalogNames) {
 
-            let fileNames = await this.getCatalogFiles(catalogName);
+            let fileNames = await this.getCatalogFiles(catalogName, true);
             let catalogPath = this.getCatalogPath(catalogName);
 
             for (let fileName of fileNames) {
-                HASH_STORE[path] = await this.computeFileHash(catalogPath + "/" + fileName);
+                let path = catalogPath + "/" + fileName;
+                HASH_STORE[path] = await this.computeFileHash(path);
+                this.fastify.log.info(`Hashed ${path} ${HASH_STORE[path]}`);
             }
 
         }
 
         this.fastify.log.info("Warm-up done.");
 
+    }
+
+    get hashStore(){
+        return HASH_STORE;
     }
 
     /**
@@ -263,9 +269,10 @@ class StorageHelper {
      * Get catalog file names
      *
      * @param {string} catalogName
+     * @param {boolean} ignoreUnhashed
      * @returns {Promise<string[]>}
      */
-    async getCatalogFiles(catalogName) {
+    async getCatalogFiles(catalogName, ignoreUnhashed) {
 
         let path = this.getCatalogPath(catalogName);
         let fileNames = await fsp.readdir(path);
@@ -275,7 +282,7 @@ class StorageHelper {
 
             let filePath = path + "/" + name;
 
-            if (typeof HASH_STORE[filePath] !== 'string') {
+            if (!ignoreUnhashed && typeof HASH_STORE[filePath] !== 'string') {
                 continue;
             }
 
