@@ -7,7 +7,7 @@ const stream = require('stream');
 const pipeline = util.promisify(stream.pipeline);
 const crypto = require('crypto');
 
-const BOX_FILENAME_PATTERN = /^(virtualbox|vmware|docker|hyperv)-([0-9\.]+)\.box$/;
+const BOX_FILENAME_PATTERN = /^(virtualbox|vmware|docker|hyperv)-([0-9\.-]+)\.box$/;
 const DEFAULT_HASH_TYPE = 'sha1';
 const HASH_STORE = {};
 

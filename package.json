@@ -1,6 +1,6 @@
 {
   "name": "vagrant-private-cloud",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
@@ -12,13 +12,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "config": "^3.2.2",
-    "fastify": "^2.8.0",
+    "config": "^3.2.3",
+    "fastify": "^2.10.0",
     "fastify-multipart": "^1.0.2",
     "fastify-plugin": "^1.6.0"
   },
   "devDependencies": {
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.2",
     "supertest": "^4.0.2"
   }
 }
