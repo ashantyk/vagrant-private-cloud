@@ -4,7 +4,8 @@
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --exit test/routes/*"
+    "test": "mocha --exit test/routes/*",
+    "start": "node index.js >> server.log 2>&1"
   },
   "engines": {
     "node": ">=10"
@@ -20,5 +21,9 @@
   "devDependencies": {
     "mocha": "^6.2.2",
     "supertest": "^4.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ashantyk/vagrant-private-cloud.git"
   }
 }
