@@ -17,9 +17,28 @@ module.exports = [
         }
     },
     {
+        method: 'HEAD',
+        url: '/catalog/:folder/manifest.json',
+        handler: (request, reply) => {
+            reply.code(200).serializer(JSON.stringify).header("Content-Type", "application/json").send("");
+        }
+    },
+    {
+        method: 'GET',
+        url: '/catalog/:folder/manifest.json',
+        handler: LIST_HANDER
+    },
+    {
         method: 'GET',
         url: '/catalog/:folder',
         handler: LIST_HANDER
+    },
+    {
+        method: 'HEAD',
+        url: '/catalog/:folder',
+        handler: (request, reply) => {
+            reply.code(200).serializer(JSON.stringify).header("Content-Type", "application/json").send("");
+        }
     },
     {
         method: 'GET',
