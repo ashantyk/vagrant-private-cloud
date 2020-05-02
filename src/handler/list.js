@@ -42,6 +42,12 @@ module.exports = async function (request, response) {
 
     }
 
-    response.code(200).send(catalogContents);
+    response
+        .code(200)
+        .header("Content-Type", "application/json")
+        .serializer((data) => {
+            return JSON.stringify(data, null, 4);
+        })
+        .send(catalogContents);
 
 };
