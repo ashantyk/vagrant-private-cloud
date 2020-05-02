@@ -19,7 +19,7 @@ module.exports = async function (request, response) {
     let fileStream = await this.storage.getFileStreamFromCatalog(catalogName, fileName);
 
     return response
-        .type('application/octet-stream')
+        .type('binary/octet-stream')
         .header('Content-Length', fileSize)
         .code(200)
         .send(fileStream);
