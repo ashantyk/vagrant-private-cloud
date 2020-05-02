@@ -10,6 +10,7 @@ module.exports = async function (request, response) {
 
     let catalogContents = {
         "name": catalogName,
+        "description": catalogName,
         "versions": []
     };
 
