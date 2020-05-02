@@ -18,7 +18,7 @@ You will need the following software requirements to be able to run this framewo
 To upload your own boxes you need to make a POST request to `http://host[:port]/{yourCatalogName}/{provider}-{version}.box` (e.g: `http://vagrant.repo.com/hydra/virtualbox-2019.09.09.box`).
 You also need to specify the `upload.secret` as the password for the basic-auth header (Authorization: Basic {base64(someUser:SECRET)}).
  
-To use your box with Vagrant you only need to set `config.vm.box_url` in your `Vagrantfile` to your catalog URL (e.g.: `http://host[:port]/{yourCatalogName}`). 
+To use your box with Vagrant you only need to set `config.vm.box_url` in your `Vagrantfile` to your catalog URL (e.g.: `http://host[:port]/{yourCatalogName}/manifest.json`). 
 
 ## Authors
 
