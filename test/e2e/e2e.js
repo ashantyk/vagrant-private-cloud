@@ -13,16 +13,24 @@ const CATALOG_FOLDER_FILE = "virtualbox-2019.09.29.box";
 const SECRET = config.get('upload.secret');
 const CATALOG_URL = '/catalog/' + CATALOG_FOLDER + "/manifest.json";
 const BOX_URL = '/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE;
-const VAGRANT_FILE_PATH=__dirname + "/Vagrantfile";
+const CWD = __dirname;
+const VAGRANT_FILE_PATH=CWD + "/Vagrantfile";
 const ALPINE_BOX_URL="https://vagrantcloud.com/alpine/boxes/alpine64/versions/3.7.0/providers/virtualbox.box";
-const ALPINE_BOX_PATH=__dirname + "/alpine.box"
+const ALPINE_BOX_PATH=CWD + "/alpine.box"
 
 describe('End-to-end testing', function() {
 
     this.bail(true);
+    this.timeout(30000);
 
-    before(async() => {
-        await app.ready();
+    before((done) => {
+        app.ready((error) => {
+            if(error) {
+                done(error);
+            } else {
+                cleanUp(done);
+            }
+        });
     });
 
     it("Download Alpine box (if necessary)", (done) => {
@@ -67,27 +75,29 @@ end
     });
 
     it("Run 'vagrant up'", (done) => {
-
-        const result = child_process.exec(`vagrant up`, {
-            cwd: __dirname
-        }, (error, strOut, strErr) => {
-            done(error);
-        });
-
+        const result = child_process.exec(`vagrant up`, {cwd: CWD}, done);
     });
 
     after((done) => {
-
-        // if (fs.existsSync(VAGRANT_FILE_PATH)) {
-        //     fs.unlinkSync(VAGRANT_FILE_PATH);
-        // }
-
-        child_process.exec(`vagrant destroy -f`, (error) => {
-            child_process.exec(`vagrant box remove ${CATALOG_FOLDER} --all`, (error) => {
-                done();
-            });
-        });
-
+        cleanUp(done);
     });
 
 });
+
+const cleanUp = (callback) => {
+
+    if (fs.existsSync(VAGRANT_FILE_PATH)) {
+        fs.unlinkSync(VAGRANT_FILE_PATH);
+    }
+
+    const execOptions = {
+        cwd: CWD
+    };
+
+    child_process.exec(`vagrant destroy --force`, execOptions ,(error) => {
+        child_process.exec(`vagrant box remove ${CATALOG_FOLDER} --all --force`, execOptions, (error) => {
+            callback();
+        });
+    });
+
+};
