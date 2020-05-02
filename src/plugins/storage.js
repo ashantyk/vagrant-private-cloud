@@ -138,7 +138,7 @@ class StorageHelper {
      */
     async getFileStreamFromCatalog(catalogName, fileName) {
         const path = this.getCatalogPath(catalogName) + "/" + fileName;
-        return fs.createReadStream(path, {encoding: 'binary'})
+        return fs.createReadStream(path, {encoding: null})
     }
 
     /**
@@ -313,8 +313,10 @@ class StorageHelper {
      */
     async writeInCatalog(catalogName, fileName, fileStream) {
         let path = this.getCatalogPath(catalogName) + "/" + fileName;
-        let writeStream = fs.createWriteStream(path);
+        let tempPath = path + ".tmp_" + this.getRandomInt(1000, 9999);
+        let writeStream = fs.createWriteStream(tempPath, {flags: "w"});
         await pipeline(fileStream, writeStream);
+        await fsp.rename(tempPath, path);
         HASH_STORE[path] = await this.computeFileHash(path);
     }
 
@@ -353,6 +355,12 @@ class StorageHelper {
 
         });
 
+    }
+
+    getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
     }
 
 }
