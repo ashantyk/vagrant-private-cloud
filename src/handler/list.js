@@ -1,6 +1,6 @@
 module.exports = async function (request, response) {
 
-    let catalogName = request.params.folder;
+    let catalogName = request.params.folder.replace(/\.json$/, "");
 
     let exists = await this.storage.catalogExists(catalogName);
 
