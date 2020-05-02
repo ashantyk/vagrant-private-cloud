@@ -63,7 +63,9 @@ describe('DELETE /catalog/:folder/:file', function() {
     });
 
     after(async function() {
-        await fsp.rmdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+        try {
+            await fsp.rmdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+        } catch (error) {}
     });
 
 });
