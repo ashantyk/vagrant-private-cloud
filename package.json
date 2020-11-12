@@ -1,10 +1,11 @@
 {
   "name": "vagrant-private-cloud",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --exit test/routes/*"
+    "test": "mocha --exit test/routes/*",
+    "start": "node index.js >> server.log 2>&1"
   },
   "engines": {
     "node": ">=10"
@@ -18,7 +19,12 @@
     "fastify-plugin": "^1.6.1"
   },
   "devDependencies": {
+    "got": "^11.8.0",
     "mocha": "^6.2.3",
     "supertest": "^4.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ashantyk/vagrant-private-cloud.git"
   }
 }

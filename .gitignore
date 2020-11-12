@@ -1,5 +1,9 @@
 node_modules/*
 .idea/*
+.vagrant/*
+test/e2e/.vagrant/*
+test/e2e/*.box
+test/e2e/Vagrantfile
 config/development.json
 config/production.json
 config/test.json

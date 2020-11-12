@@ -1,6 +1,6 @@
 module.exports = async function (request, response) {
 
-    let catalogName = request.params.folder;
+    let catalogName = request.params.folder.replace(/\.json$/, "");
 
     let exists = await this.storage.catalogExists(catalogName);
 
@@ -10,6 +10,7 @@ module.exports = async function (request, response) {
 
     let catalogContents = {
         "name": catalogName,
+        "description": catalogName,
         "versions": []
     };
 
@@ -41,6 +42,12 @@ module.exports = async function (request, response) {
 
     }
 
-    response.code(200).send(catalogContents);
+    response
+        .code(200)
+        .header("Content-Type", "application/json")
+        .serializer((data) => {
+            return JSON.stringify(data, null, 4);
+        })
+        .send(catalogContents);
 
 };

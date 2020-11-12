@@ -18,12 +18,24 @@ describe('POST /catalog/:folder/:file', function() {
 
     it('responds with OK message', function(done) {
 
+        const localPath = __dirname + '/../dummyFile.box'
+        const serverPath = __dirname + '/../../storage/' + CATALOG_FOLDER + '/' + CATALOG_FOLDER_FILE;
+
         request(app.server)
             .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
             .auth(SECRET, SECRET)
-            .attach('box', './test/dummyFile.box')
+            .attach('box', localPath)
             .expect(200, function(error, response) {
-                fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, done);
+                fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, (error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    const localStat = fs.statSync(localPath);
+                    const serverStat = fs.statSync(serverPath);
+                    assert.notEqual(serverStat.size, 0, "Uploaded file seems empty!");
+                    assert.equal(serverStat.size, localStat.size, "Size does not match!");
+                    done();
+                });
             });
 
     });

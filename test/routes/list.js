@@ -7,7 +7,7 @@ const assert = require('assert');
 
 const STORAGE_FOLDER = config.get('storage.path');
 const CATALOG_FOLDER = "testFolder";
-const CATALOG_FOLDER_FILE = "virtualbox-2019.09.29.box";
+const CATALOG_FOLDER_FILE = "virtualbox-2019.09.29-2.box";
 const SECRET = config.get('upload.secret');
 
 describe('GET /catalog/:folder', function() {
@@ -67,7 +67,7 @@ describe('GET /catalog/:folder', function() {
 
                 let versionPackage = response.body.versions[0];
 
-                assert.equal(versionPackage.version, "2019.09.29");
+                assert.equal(versionPackage.version, "2019.09.29-2");
                 assert.equal(Array.isArray(versionPackage.providers), true);
                 assert.equal(versionPackage.providers.length, 1);
 

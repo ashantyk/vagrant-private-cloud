@@ -5,7 +5,7 @@
   },
   "logger" : {
     "level" : "warn",
-    "file" : "/var/log/vagrant-private-cloud.log"
+    "file" : "./server.log"
   },
   "storage" : {
     "path" : "storage"
@@ -13,5 +13,8 @@
   "upload": {
     "secret": "CHANGE_THIS_TO_SOMETHING_STRONG",
     "maxSize": 1073741824
+  },
+  "plugins": {
+    "readyTimeout": 60000
   }
 }

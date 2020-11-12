@@ -49,11 +49,11 @@ describe('GET /catalog/:folder/:file', function() {
 
         request(app.server)
             .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
-            .expect('Content-Type', /application\/octet-stream/)
+            .expect('Content-Type', /binary\/octet-stream/)
             .expect('Content-Length', DUMMY_FILE_CONTENTS.length.toString())
             .expect(200, function(error, response){
                 assert.equal(error, null);
-                assert.equal(response.body.toString(), DUMMY_FILE_CONTENTS);
+                assert.equal(response.text || response.body.toString(), DUMMY_FILE_CONTENTS);
                 done();
             });
 
@@ -83,11 +83,12 @@ describe('GET /catalog/:folder/:file', function() {
         request(app.server)
             .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
             .set('Range', `bytes=${EXPECTED_RANGE_START}-${EXPECTED_CONTENT_LENGTH-1}`)
-            .expect('Content-Type', /application\/octet-stream/)
+            .buffer(true)
+            .expect('Content-Type', /binary\/octet-stream/)
             .expect('Content-Length', EXPECTED_CONTENT_LENGTH.toString())
             .expect(206, function(error, response){
                 assert.equal(error, null);
-                assert.equal(response.body.toString(), DUMMY_FILE_CONTENTS.substr(EXPECTED_RANGE_START, EXPECTED_CONTENT_LENGTH));
+                assert.equal(response.text, DUMMY_FILE_CONTENTS.substr(EXPECTED_RANGE_START, EXPECTED_CONTENT_LENGTH));
                 done();
             });
 

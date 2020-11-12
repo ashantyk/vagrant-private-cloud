@@ -7,7 +7,7 @@ const stream = require('stream');
 const pipeline = util.promisify(stream.pipeline);
 const crypto = require('crypto');
 
-const BOX_FILENAME_PATTERN = /^(virtualbox|vmware|docker|hyperv)-([0-9\.]+)\.box$/;
+const BOX_FILENAME_PATTERN = /^(virtualbox|vmware|docker|hyperv)-([0-9\.-]+)\.box$/;
 const DEFAULT_HASH_TYPE = 'sha1';
 const HASH_STORE = {};
 
@@ -140,7 +140,7 @@ class StorageHelper {
     async getFileStreamFromCatalog(catalogName, fileName, options) {
         const path = this.getCatalogPath(catalogName) + "/" + fileName;
         const readStreamOptions = Object.assign(options, {
-            'encoding': 'binary',
+            'encoding': null,
             'flags': 'r',
             'autoClose': true
         });
@@ -319,8 +319,10 @@ class StorageHelper {
      */
     async writeInCatalog(catalogName, fileName, fileStream) {
         let path = this.getCatalogPath(catalogName) + "/" + fileName;
-        let writeStream = fs.createWriteStream(path);
+        let tempPath = path + ".tmp_" + this.getRandomInt(1000, 9999);
+        let writeStream = fs.createWriteStream(tempPath, {flags: "w"});
         await pipeline(fileStream, writeStream);
+        await fsp.rename(tempPath, path);
         HASH_STORE[path] = await this.computeFileHash(path);
     }
 
@@ -359,6 +361,12 @@ class StorageHelper {
 
         });
 
+    }
+
+    getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
     }
 
 }

@@ -42,7 +42,7 @@ module.exports = async function (request, response) {
     }
 
     response
-        .type('application/octet-stream')
+        .type('binary/octet-stream')
         .header('Accept-Ranges', 'bytes');
 
     if (streamRange.chunk) {

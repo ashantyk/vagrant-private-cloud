@@ -8,6 +8,7 @@ const LOGGER_LEVEL = config.get('logger.level');
 const LOGGER_FILE = config.get('logger.file');
 const STORAGE_FOLDER = config.get('storage.path');
 const UPLOAD_MAX_FILE_SIZE = config.get('upload.maxSize');
+const PLUGINS_READY_TIMEOUT = config.get('plugins.readyTimeout');
 
 const fastify = server({
     logger: {
@@ -16,7 +17,8 @@ const fastify = server({
     },
     ignoreTrailingSlash: true,
     disableRequestLogging: LOGGER_LEVEL !== 'debug',
-    modifyCoreObjects: false
+    modifyCoreObjects: false,
+    pluginTimeout: PLUGINS_READY_TIMEOUT
 });
 
 fastify.register(storagePlugin, {
