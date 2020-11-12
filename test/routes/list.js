@@ -14,15 +14,23 @@ describe('GET /catalog/:folder', function() {
 
     before(function(done){
 
-        request(app.server)
-            .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
-            .auth(SECRET, SECRET)
-            .attach('box', './test/dummyFile.box')
-            .expect(200, function(error, response) {
-                fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function(error){
-                    done(error || undefined);
+        app.ready((error) => {
+
+            if (error) {
+                return done(error);
+            }
+
+            request(app.server)
+                .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+                .auth(SECRET, SECRET)
+                .attach('box', './test/dummyFile.box')
+                .expect(200, function (error, response) {
+                    fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function (error) {
+                        done(error || undefined);
+                    });
                 });
-            });
+
+        });
 
     });
 

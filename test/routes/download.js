@@ -15,15 +15,24 @@ describe('GET /catalog/:folder/:file', function() {
 
     before(function(done){
 
-        request(app.server)
-            .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
-            .auth(SECRET, SECRET)
-            .attach('box', DUMMY_FILE)
-            .expect(200, function(error, response) {
-                fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function(error){
-                    done(error || undefined);
+        app.ready((error) => {
+
+            if (error) {
+                return done(error);
+            }
+
+            request(app.server)
+                .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+                .auth(SECRET, SECRET)
+                .attach('box', DUMMY_FILE)
+                .expect(200, function(error, response) {
+                    fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function(error){
+                        done(error || undefined);
+                    });
                 });
-            });
+
+        })
+
 
     });
 
@@ -63,6 +72,51 @@ describe('GET /catalog/:folder/:file', function() {
         request(app.server)
             .get('/catalog/' + CATALOG_FOLDER + '/someInexistentFile')
             .expect(404, done);
+
+    });
+
+    it('responds with 206 for resuming download', function(done) {
+
+        const EXPECTED_RANGE_START = 0;
+        const EXPECTED_CONTENT_LENGTH = 12;
+
+        request(app.server)
+            .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .set('Range', `bytes=${EXPECTED_RANGE_START}-${EXPECTED_CONTENT_LENGTH-1}`)
+            .expect('Content-Type', /application\/octet-stream/)
+            .expect('Content-Length', EXPECTED_CONTENT_LENGTH.toString())
+            .expect(206, function(error, response){
+                assert.equal(error, null);
+                assert.equal(response.body.toString(), DUMMY_FILE_CONTENTS.substr(EXPECTED_RANGE_START, EXPECTED_CONTENT_LENGTH));
+                done();
+            });
+
+    });
+
+    it('responds with 416 for invalid ranges (exceeded end range)', function(done) {
+
+        request(app.server)
+            .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .set('Range', `bytes=0-${DUMMY_FILE_CONTENTS.length}`) // range must be total-1 byte to be valid :)
+            .expect(416, done);
+
+    });
+
+    it('responds with 416 for invalid ranges (exceeded start range)', function(done) {
+
+        request(app.server)
+            .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .set('Range', `bytes=${DUMMY_FILE_CONTENTS.length+1}-${DUMMY_FILE_CONTENTS.length-1}`)
+            .expect(416, done);
+
+    });
+
+    it('responds with 416 for invalid ranges (range start > end)', function(done) {
+
+        request(app.server)
+            .get('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            .set('Range', `bytes=10-9`)
+            .expect(416, done);
 
     });
 

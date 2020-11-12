@@ -134,11 +134,17 @@ class StorageHelper {
      *
      * @param {string} catalogName
      * @param {string} fileName
+     * @param {object} options
      * @returns {Promise<ReadStream>}
      */
-    async getFileStreamFromCatalog(catalogName, fileName) {
+    async getFileStreamFromCatalog(catalogName, fileName, options) {
         const path = this.getCatalogPath(catalogName) + "/" + fileName;
-        return fs.createReadStream(path, {encoding: 'binary'})
+        const readStreamOptions = Object.assign(options, {
+            'encoding': 'binary',
+            'flags': 'r',
+            'autoClose': true
+        });
+        return fs.createReadStream(path, readStreamOptions);
     }
 
     /**

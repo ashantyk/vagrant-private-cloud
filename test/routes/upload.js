@@ -12,6 +12,10 @@ const SECRET = config.get('upload.secret');
 
 describe('POST /catalog/:folder/:file', function() {
 
+    before(function(done) {
+        app.ready(done);
+    });
+
     it('responds with OK message', function(done) {
 
         request(app.server)

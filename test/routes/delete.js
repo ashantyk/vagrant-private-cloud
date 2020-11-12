@@ -19,6 +19,7 @@ describe('DELETE /catalog/:folder/:file', function() {
         } catch (error) {
 
         }
+        await app.ready();
     });
 
 

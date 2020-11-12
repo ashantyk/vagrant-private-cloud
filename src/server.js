@@ -4,8 +4,6 @@ const storagePlugin = require('./plugins/storage.js');
 const config = require('config');
 const routes = require('./routes.js');
 
-const SERVER_HOST = config.get('server.host');
-const SERVER_PORT = config.get('server.port');
 const LOGGER_LEVEL = config.get('logger.level');
 const LOGGER_FILE = config.get('logger.file');
 const STORAGE_FOLDER = config.get('storage.path');
@@ -39,7 +37,5 @@ fastify.register(multipartPlugin, {
 routes.forEach((route) => {
     fastify.route(route);
 });
-
-fastify.listen(SERVER_PORT, SERVER_HOST);
 
 module.exports = fastify;
