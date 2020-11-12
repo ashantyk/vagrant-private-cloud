@@ -60,6 +60,9 @@ describe('End-to-end testing', function() {
     });
 
     it("Create Vagrantfile", async () => {
+        if (!app.server.listening) {
+            await app.listen(config.get('server.port'), config.get('server.host'));
+        }
         await app.ready();
         const server = app.server.address();
 
