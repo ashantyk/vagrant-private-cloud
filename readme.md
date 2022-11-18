@@ -22,7 +22,7 @@ To use your box with Vagrant you only need to set `config.vm.box_url` in your `V
 
 ## Authors
 
-* **Gabriel Barbieru** - [gbarbieru@bitdefender.com](mailto:gbarbieru@bitdefender.com)
+* **Gabriel Barbieru** - [barbieru.gabriel@gmail.com](mailto:barbieru.gabriel@gmail.com)
 
 ## License
 
