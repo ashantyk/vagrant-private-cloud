@@ -3,7 +3,6 @@ const app = require('../../src/server.js');
 const config = require('config');
 const fs = require('fs');
 const child_process = require('child_process');
-const got = require('got');
 const stream = require('stream');
 const assert = require('assert');
 
@@ -37,10 +36,14 @@ describe('End-to-end testing', function() {
         if(fs.existsSync(ALPINE_BOX_PATH)) {
             return done();
         }
-        stream.pipeline([
-            got.stream(ALPINE_BOX_URL),
-            fs.createWriteStream(ALPINE_BOX_PATH)
-        ], done);
+        import('got').then(module => {
+            const readStream = module.got.stream(ALPINE_BOX_URL);
+            const writeStream = fs.createWriteStream(ALPINE_BOX_PATH);
+            stream.pipeline([readStream,writeStream], done);
+        }).catch(error => {
+            console.error(error);
+            done(error);
+        });
     });
 
     it("Upload Alpine box to Vagrant Private Cloud server", (done) => {
