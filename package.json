@@ -19,7 +19,7 @@
     "fastify-plugin": "^1.6.1"
   },
   "devDependencies": {
-    "got": "^11.8.0",
+    "got": "^11.8.5",
     "mocha": "^10.2.0",
     "supertest": "^4.0.2"
   },
