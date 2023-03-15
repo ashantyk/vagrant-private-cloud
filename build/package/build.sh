@@ -18,16 +18,26 @@ mkdir -p ${TARGET_DST}
 mkdir -p ${TARGET_DST}/src
 mkdir -p ${TARGET_DST}/config
 
+
 #
 # copy application files
 #
 echo "Copying application files"
-cp -R ${REPO_SRC}/index.js      ${TARGET_DST}/index.js
-cp -R ${REPO_SRC}/package.json  ${TARGET_DST}/package.json
-cp -R ${REPO_SRC}/readme.md     ${TARGET_DST}/readme.md
-cp -R ${REPO_SRC}/LICENSE       ${TARGET_DST}/LICENSE
-cp -R ${REPO_SRC}/src/*         ${TARGET_DST}/src
+cp -R ${REPO_SRC}/index.js            ${TARGET_DST}/index.js
+cp -R ${REPO_SRC}/package.json        ${TARGET_DST}/package.json
+cp -R ${REPO_SRC}/package-lock.json   ${TARGET_DST}/package-lock.json
+cp -R ${REPO_SRC}/readme.md           ${TARGET_DST}/readme.md
+cp -R ${REPO_SRC}/LICENSE             ${TARGET_DST}/LICENSE
+cp -R ${REPO_SRC}/src/*               ${TARGET_DST}/src
 cp -R ${REPO_SRC}/config/default.json ${TARGET_DST}/config/default.json
+
+
+#
+# install node modules
+#
+echo "Pulling dependencies"
+(cd ${TARGET_DST} && npm ci)
+
 
 #
 # copy systemd services

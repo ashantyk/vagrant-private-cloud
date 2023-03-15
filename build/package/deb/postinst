@@ -20,8 +20,7 @@ case "${OP}" in
         if [ ! -d ${BASE_DIR}/storage ]; then
             mkdir -p ${BASE_DIR}/storage
         fi
-        npm install --quiet --only=prod --prefix "${BASE_DIR}"
-        adduser --system --no-create-home --group vagrant
+        adduser --system --no-create-home --group vagrant || true
         usermod -a -G syslog vagrant 
         chown vagrant:vagrant ${BASE_DIR} -R
         systemctl enable "${SERVICE_NAME}" >/dev/null || true
@@ -33,7 +32,6 @@ case "${OP}" in
         if [ ! -d ${BASE_DIR}/storage ]; then
             mkdir -p ${BASE_DIR}/storage
         fi
-        npm update --quiet --only=prod --prefix "${BASE_DIR}"
         chown vagrant:vagrant ${BASE_DIR} -R
         systemctl --system daemon-reload > /dev/null || true
         systemctl restart "${SERVICE_NAME}" || log "Failed to restart ${SERVICE_NAME} service"
