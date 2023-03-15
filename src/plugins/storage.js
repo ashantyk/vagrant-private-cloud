@@ -377,5 +377,5 @@ module.exports = fastifyPlugin(async function storage (fastify, options) {
     fastify.decorate('storage', storagePlugin);
 }, {
     name: 'storage',
-    fastify: '2.x',
+    fastify: '4.x',
 });

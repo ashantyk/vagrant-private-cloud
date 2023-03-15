@@ -1,5 +1,5 @@
 const server = require('fastify');
-const multipartPlugin = require('fastify-multipart');
+const multipartPlugin = require('@fastify/multipart');
 const storagePlugin = require('./plugins/storage.js');
 const config = require('config');
 const routes = require('./routes.js');

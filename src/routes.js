@@ -10,19 +10,27 @@ const WRITE_OPERATIONS_SECRET = config.get('upload.secret');
 
 module.exports = [
     {
+        method: 'HEAD',
+        url: '/catalog/:folder/manifest.json',
+        handler: (request, reply) => {
+            reply.code(200).serializer(JSON.stringify).header("Content-Type", "application/json").send("");
+        }
+    },
+    {
+        method: 'HEAD',
+        url: '/catalog/:folder',
+        handler: (request, reply) => {
+            reply.code(200).serializer(JSON.stringify).header("Content-Type", "application/json").send("");
+        }
+    },
+    {
         method: 'GET',
         url: "/",
         handler: (request, response) => {
             response.code(403).send({error:"Invalid URL"});
         }
     },
-    {
-        method: 'HEAD',
-        url: '/catalog/:folder/manifest.json',
-        handler: (request, reply) => {
-            reply.code(200).serializer(JSON.stringify).header("Content-Type", "application/json").send("");
-        }
-    },
+
     {
         method: 'GET',
         url: '/catalog/:folder/manifest.json',
@@ -32,13 +40,6 @@ module.exports = [
         method: 'GET',
         url: '/catalog/:folder',
         handler: LIST_HANDER
-    },
-    {
-        method: 'HEAD',
-        url: '/catalog/:folder',
-        handler: (request, reply) => {
-            reply.code(200).serializer(JSON.stringify).header("Content-Type", "application/json").send("");
-        }
     },
     {
         method: 'GET',
