@@ -23,6 +23,7 @@ case "${OP}" in
         adduser --system --no-create-home --group vagrant || true
         usermod -a -G syslog vagrant 
         chown vagrant:vagrant ${BASE_DIR} -R
+        setcap CAP_NET_BIND_SERVICE=+eip /usr/bin/node
         systemctl enable "${SERVICE_NAME}" >/dev/null || true
         systemctl start "${SERVICE_NAME}"|| log "Failed to start ${SERVICE_NAME} service"
 
@@ -33,6 +34,7 @@ case "${OP}" in
             mkdir -p ${BASE_DIR}/storage
         fi
         chown vagrant:vagrant ${BASE_DIR} -R
+        setcap CAP_NET_BIND_SERVICE=+eip /usr/bin/node
         systemctl --system daemon-reload > /dev/null || true
         systemctl restart "${SERVICE_NAME}" || log "Failed to restart ${SERVICE_NAME} service"
 

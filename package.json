@@ -1,6 +1,6 @@
 {
   "name": "vagrant-private-cloud",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
