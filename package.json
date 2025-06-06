@@ -15,7 +15,7 @@
   "dependencies": {
     "@fastify/multipart": "^7.5.0",
     "config": "^3.3.9",
-    "fastify": "^4.14.1",
+    "fastify": "^4.29.1",
     "fastify-plugin": "^4.5.0"
   },
   "devDependencies": {
