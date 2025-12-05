@@ -13,33 +13,33 @@ const SECRET = config.get('upload.secret');
 const CATALOG_URL = '/catalog/' + CATALOG_FOLDER + "/manifest.json";
 const BOX_URL = '/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE;
 const CWD = __dirname;
-const VAGRANT_FILE_PATH=CWD + "/Vagrantfile";
-const ALPINE_BOX_URL="https://vagrantcloud.com/alpine/boxes/alpine64/versions/3.7.0/providers/virtualbox.box";
-const ALPINE_BOX_PATH=CWD + "/alpine.box"
+const VAGRANT_FILE_PATH = CWD + "/Vagrantfile";
+const ALPINE_BOX_URL = "https://vagrantcloud.com/alpine/boxes/alpine64/versions/3.7.0/providers/virtualbox.box";
+const ALPINE_BOX_PATH = CWD + "/alpine.box"
+const SERVER_HOST = config.get('server.host');
+const SERVER_PORT = config.get('server.port');
 
-describe('End-to-end testing', function() {
+describe('End-to-end testing', function () {
 
     this.bail(true);
-    this.timeout(30000);
+    this.timeout(60_000);
 
-    before((done) => {
-        app.ready((error) => {
-            if(error) {
-                done(error);
-            } else {
-                cleanUp(done);
-            }
+    before(async () => {
+        await app.listen({
+            port: SERVER_PORT,
+            host: SERVER_HOST,
         });
+        await cleanUp();
     });
 
     it("Download Alpine box (if necessary)", (done) => {
-        if(fs.existsSync(ALPINE_BOX_PATH)) {
+        if (fs.existsSync(ALPINE_BOX_PATH)) {
             return done();
         }
         import('got').then(module => {
             const readStream = module.got.stream(ALPINE_BOX_URL);
             const writeStream = fs.createWriteStream(ALPINE_BOX_PATH);
-            stream.pipeline([readStream,writeStream], done);
+            stream.pipeline([readStream, writeStream], done);
         }).catch(error => {
             console.error(error);
             done(error);
@@ -52,7 +52,7 @@ describe('End-to-end testing', function() {
             .post(BOX_URL)
             .auth(SECRET, SECRET)
             .attach('box', ALPINE_BOX_PATH)
-            .expect(200, function(error, response) {
+            .expect(200, function (error, response) {
                 fs.accessSync(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK);
                 const localStat = fs.statSync(ALPINE_BOX_PATH);
                 const serverStat = fs.statSync(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
@@ -63,34 +63,62 @@ describe('End-to-end testing', function() {
     });
 
     it("Create Vagrantfile", async () => {
-        if (!app.server.listening) {
-            await app.listen(config.get('server.port'), config.get('server.host'));
+
+        const address = app.server.address();
+
+        if (!address) {
+            throw new Error('Failed to detect server address');
         }
-        await app.ready();
-        const server = app.server.address();
 
         const content = `# -*- mode: ruby -*-
 # vi: set ft=ruby :
 Vagrant.configure("2") do |config|
     config.vm.box = "${CATALOG_FOLDER}"
-    config.vm.box_url = "http://${server.address.replace("0.0.0.0", "127.0.0.1")}:${server.port}${CATALOG_URL}"
+    config.vm.box_url = "http://${address.address.replace("0.0.0.0", "127.0.0.1")}:${SERVER_PORT}${CATALOG_URL}"
     config.vm.box_check_update = true
 end
 `;
         fs.writeFileSync(VAGRANT_FILE_PATH, content);
     });
 
-    it("Run 'vagrant up'", (done) => {
-        const result = child_process.exec(`vagrant up`, {cwd: CWD}, done);
+    it('Test catalog URL', async () => {
+
+        const address = app.server.address();
+
+        if (!address) {
+            throw new Error('Failed to detect server address');
+        }
+
+        const catalogUrl = `http://${address.address.replace("0.0.0.0", "127.0.0.1")}:${SERVER_PORT}${CATALOG_URL}`
+        const response = await fetch(catalogUrl);
+        const data = await response.json();
+
+        if (!data?.versions?.length) {
+            throw new Error('No boxes found for catalog URL');
+        }
+
     });
 
-    after((done) => {
-        cleanUp(done);
+    it("Run 'vagrant up'", (done) => {
+        const result = child_process.exec(`vagrant up`, {cwd: CWD}, (error, stdout, stderr) => {
+            if (error) {
+                return done(new Error(stderr));
+            } else {
+                done();
+            }
+        });
+    });
+
+    after(async () => {
+        if (app.server.address()) {
+            await app.close();
+        }
+        await cleanUp();
     });
 
 });
 
-const cleanUp = (callback) => {
+const cleanUp = async () => {
 
     if (fs.existsSync(VAGRANT_FILE_PATH)) {
         fs.unlinkSync(VAGRANT_FILE_PATH);
@@ -100,10 +128,16 @@ const cleanUp = (callback) => {
         cwd: CWD
     };
 
-    child_process.exec(`vagrant destroy --force`, execOptions ,(error) => {
-        child_process.exec(`vagrant box remove ${CATALOG_FOLDER} --all --force`, execOptions, (error) => {
-            callback();
-        });
-    });
+    try {
+        child_process.execSync(`vagrant destroy --force`, execOptions);
+    } catch (error) {
+        // do nothing
+    }
+
+    try {
+        child_process.execSync(`vagrant box remove ${CATALOG_FOLDER} --all --force`, execOptions);
+    } catch (error) {
+        // do nothing
+    }
 
 };

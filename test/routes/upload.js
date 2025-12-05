@@ -26,6 +26,9 @@ describe('POST /catalog/:folder/:file', function() {
             .auth(SECRET, SECRET)
             .attach('box', localPath)
             .expect(200, function(error, response) {
+                if (error) {
+                    return done(error);
+                }
                 fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, (error) => {
                     if(error) {
                         return done(error);

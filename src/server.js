@@ -15,7 +15,6 @@ const fastify = server({
         level: LOGGER_LEVEL,
         file: LOGGER_FILE
     },
-    ignoreTrailingSlash: true,
     disableRequestLogging: LOGGER_LEVEL !== 'debug',
     modifyCoreObjects: false,
     pluginTimeout: PLUGINS_READY_TIMEOUT

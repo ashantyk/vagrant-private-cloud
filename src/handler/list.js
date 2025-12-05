@@ -31,7 +31,7 @@ module.exports = async function (request, response) {
 
             versions[item.version].providers.push({
                 'name' : item.provider,
-                'url': "http://" + request.hostname + "/catalog/" + catalogName + "/" + item.file,
+                'url': "http://" + request.hostname + ":" + request.port + "/catalog/" + catalogName + "/" + item.file,
                 'checksum_type' : item.hashType,
                 'checksum': item.hash
             })

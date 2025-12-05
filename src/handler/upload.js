@@ -15,35 +15,14 @@ module.exports = async function (request, response) {
         throw new Error(`Catalog '${catalogName}' is not writeable!`);
     }
 
-    let fastify = this;
+    try {
+        const multipart = await request.file();
+        await this.storage.writeInCatalog(catalogName, fileName, multipart.file);
+    } catch (error) {
+        request.log.debug('Upload parse failed: ' + (error.message || error));
+        return response.code(400).send({"error": 'Upload failed!'});
+    }
 
-    return new Promise(function(resolve, reject){
-
-        const callback = function (error) {
-            if (error) {
-                request.log.debug('Upload parse failed: ' + (error.message || error));
-                response.code(400).send({"error": 'Upload failed!'});
-                reject(error);
-            }
-        };
-
-        const handler = async function(field, fileStream, filename, encoding, mimetype) {
-            fastify.log.info(`Receiving file: ${filename}`);
-        };
-
-        let mp = request.multipart(handler, callback);
-
-        mp.on('file', async function(field, fileStream, filename, encoding, mimetype){
-            try {
-                await fastify.storage.writeInCatalog(catalogName, fileName, fileStream);
-            } catch (error) {
-                return reject(error);
-            }
-            request.log.debug('Upload completed');
-            response.code(200).send({"success": true});
-            resolve();
-        });
-
-    });
-
+    request.log.debug('Upload completed');
+    return response.code(200).send({"success": true});
 };

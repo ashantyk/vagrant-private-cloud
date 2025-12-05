@@ -15,7 +15,7 @@ module.exports = async function (request, response) {
     let firstColonIndex = credentials.indexOf(':');
     let password = credentials.slice(firstColonIndex + 1);
 
-    if (password !== response.context.config.secret) {
+    if (password !== response.routeOptions.config.secret) {
         return response.code(401).send();
     }
 
