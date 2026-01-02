@@ -12,7 +12,7 @@ A NodeJS web server for uploading and delivering vagrant boxes.
 ### Prerequisites
 
 You will need the following software requirements to be able to run this framework:
-* **NodeJS** - *10+*
+* **NodeJS** - *20+*
 
 ## Uploading and using boxes
 To upload your own boxes you need to make a POST request to `http://host[:port]/{yourCatalogName}/{provider}-{version}.box` (e.g: `http://vagrant.repo.com/hydra/virtualbox-2019.09.09.box`).
