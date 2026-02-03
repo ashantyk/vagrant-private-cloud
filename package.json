@@ -1,6 +1,6 @@
 {
   "name": "vagrant-private-cloud",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
@@ -13,15 +13,15 @@
   "author": "Gabriel Barbieru <barbieru.gabriel@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@fastify/multipart": "^9.3.0",
-    "config": "^4.1.1",
-    "fastify": "^5.6.2",
+    "@fastify/multipart": "^9.4.0",
+    "config": "^4.2.0",
+    "fastify": "^5.7.4",
     "fastify-plugin": "^5.1.0"
   },
   "devDependencies": {
-    "got": "^14.6.5",
+    "got": "^14.6.6",
     "mocha": "^11.7.5",
-    "supertest": "^7.1.4"
+    "supertest": "^7.2.2"
   },
   "repository": {
     "type": "git",
