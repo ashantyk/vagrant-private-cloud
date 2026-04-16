@@ -13,14 +13,14 @@
   "author": "Gabriel Barbieru <barbieru.gabriel@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@fastify/multipart": "^9.4.0",
-    "config": "^4.2.0",
-    "fastify": "^5.7.4",
+    "@fastify/multipart": "^10.0.0",
+    "config": "^4.4.1",
+    "fastify": "^5.8.5",
     "fastify-plugin": "^5.1.0"
   },
   "devDependencies": {
-    "got": "^14.6.6",
-    "mocha": "^11.7.5",
+    "got": "^15.0.2",
+    "mocha": "^11.3.0",
     "supertest": "^7.2.2"
   },
   "repository": {
