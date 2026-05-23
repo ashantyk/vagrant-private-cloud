@@ -1,88 +1,88 @@
-const request = require('supertest');
 const app = require('../../src/server.js');
 const config = require('config');
-const url = require('url');
-const fs = require('fs');
-const assert = require('assert');
+const fs = require('fs/promises');
+const assert = require("assert");
 
 const STORAGE_FOLDER = config.get('storage.path');
 const CATALOG_FOLDER = "testFolder";
 const CATALOG_FOLDER_FILE = "virtualbox-2019.09.29-2.box";
 const SECRET = config.get('upload.secret');
 
-describe('GET /catalog/:folder', function() {
+describe('GET /catalog/:folder', () => {
 
-    before(function(done){
+    let dummyFileContents = "";
+    const headers = {
+        authorization: 'Basic ' + Buffer.from("someUser:" + SECRET).toString('base64')
+    };
 
-        app.ready((error) => {
+    beforeAll(async () => {
 
-            if (error) {
-                return done(error);
-            }
+        await app.ready();
 
-            request(app.server)
-                .post('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
-                .auth(SECRET, SECRET)
-                .attach('box', './test/dummyFile.box')
-                .expect(200, function (error, response) {
-                    fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK, function (error) {
-                        done(error || undefined);
-                    });
-                });
+        dummyFileContents = await fs.readFile('./test/dummyFile.box', {encoding: 'utf-8'});
 
+        const form = new FormData();
+        form.append('box', new Blob([dummyFileContents]), 'dummy.box');
+
+        const response = await app.inject({
+            method: 'POST',
+            path: '/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE,
+            headers: { ...headers, 'content-type': 'application/x-www-form-urlencoded' },
+            payload: form
         });
 
-    });
-
-    after(function(done){
-
-        request(app.server)
-            .delete('/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
-            .auth(SECRET, SECRET)
-            .expect(200, done);
+        assert.strictEqual(response.statusCode, 200, 'Expected status code 200, got ' + response.statusCode);
+        await fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK);
 
     });
 
-    it('responds with 404 for invalid catalog', function(done) {
-
-        request(app.server)
-            .get('/catalog/folderThatDoesntExist')
-            .expect('Content-Type', /application\/json/)
-            .expect(404, done);
-
+    afterAll(async () => {
+        await app.inject({
+            method: 'DELETE',
+            path: '/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE,
+            headers: headers
+        });
+        await app.close();
     });
 
-    it('responds with listing', function(done) {
+    it('responds with 404 for invalid catalog', async () => {
+        const response = await app.inject({
+            method: 'GET',
+            path: '/catalog//folderThatDoesntExist',
+        });
+        assert.equal(response.statusCode, 404);
+    });
 
-        request(app.server)
-            .get('/catalog/' + CATALOG_FOLDER)
-            .expect('Content-Type', /application\/json/)
-            .expect(200, function(error, response){
+    it('responds with listing', async () => {
 
-                assert.equal(error, null);
+        const response = await app.inject({
+            method: 'GET',
+            path: '/catalog/' + CATALOG_FOLDER,
+        });
 
-                assert.equal(response.body.name, CATALOG_FOLDER);
-                assert.equal(Array.isArray(response.body.versions), true);
-                assert.equal(response.body.versions.length, 1);
+        assert.equal(response.statusCode, 200);
+        assert.match(response.headers['content-type'], /application\/json/);
 
-                let versionPackage = response.body.versions[0];
+        const body = JSON.parse(response.body);
+        assert.equal(body.name, CATALOG_FOLDER);
+        assert.ok(Array.isArray(body.versions), '"versions" must be an array"')
+        assert.equal(body.versions.length, 1);
 
-                assert.equal(versionPackage.version, "2019.09.29-2");
-                assert.equal(Array.isArray(versionPackage.providers), true);
-                assert.equal(versionPackage.providers.length, 1);
+        const versionPackage = body.versions.pop();
+        assert.equal(versionPackage.version, "2019.09.29-2");
+        assert.ok(Array.isArray(versionPackage.providers), '"providers" must be an array"')
+        assert.equal(versionPackage.providers.length, 1);
 
-                let box = versionPackage.providers[0];
-                assert.equal(box.name, 'virtualbox');
-                assert.equal(box.checksum_type, 'sha1');
-                assert.equal(box.checksum, '57c477904efee53b94c5d9b282a616dbf148423c');
-                let packageUrl = url.parse(box.url);
-                assert.equal(packageUrl.path.indexOf(CATALOG_FOLDER) !== -1, true);
-                assert.equal(packageUrl.path.indexOf(CATALOG_FOLDER_FILE) !== -1, true);
+        const box = versionPackage.providers.pop();
+        assert.equal(box.name, 'virtualbox');
+        assert.equal(box.checksum_type, 'sha1');
+        assert.equal(box.checksum, '57c477904efee53b94c5d9b282a616dbf148423c');
 
-                done();
-
-            });
+        const packageUrl = new URL(box.url);
+        assert.ok(packageUrl.pathname.indexOf(CATALOG_FOLDER) !== -1);
+        assert.ok(packageUrl.pathname.indexOf(CATALOG_FOLDER_FILE) !== -1);
 
     });
 
 });
+

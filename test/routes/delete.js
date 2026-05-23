@@ -1,72 +1,73 @@
-const request = require('supertest');
 const app = require('../../src/server.js');
 const config = require('config');
-const fs = require('fs');
-const fsp = require('fs').promises;
-const assert = require('assert');
+const fs = require('fs/promises');
+const assert  = require('assert');
 
 const STORAGE_FOLDER = config.get('storage.path');
 const CATALOG_FOLDER = "testFolder";
 const CATALOG_FOLDER_FILE = "virtualbox-2019.09.29.box";
 const SECRET = config.get('upload.secret');
 
-describe('DELETE /catalog/:folder/:file', function() {
+describe('DELETE /catalog/:folder/:file', () => {
 
-    before(async function(){
+    const headers = {
+        authorization: 'Basic ' + Buffer.from("someUser:" + SECRET).toString('base64')
+    };
+
+    beforeAll(async () => {
         try {
-            await fsp.mkdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
-            await fsp.copyFile('test/dummyFile.box', STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
+            await fs.mkdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+            await fs.copyFile('test/dummyFile.box', STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
         } catch (error) {
-
+            // ignore
         }
         await app.ready();
     });
 
-
-
-    it('responds with 404 for invalid catalog name', function(done) {
-
-        request(app.server)
-            .delete('/catalog/invalidCatalogName/' + CATALOG_FOLDER_FILE)
-            .auth(SECRET, SECRET)
-            .expect(404, done);
-
-    });
-
-    it('responds with 404 for invalid file name', function(done) {
-
-        request(app.server)
-            .delete('/catalog/' + CATALOG_FOLDER + '/inexistentFileName')
-            .auth(SECRET, SECRET)
-            .expect(404, done);
-
-    });
-
-
-    it('responds with 200 for valid request', function(done) {
-
-        request(app.server)
-            .delete('/catalog/' + CATALOG_FOLDER + '/' + CATALOG_FOLDER_FILE)
-            .auth(SECRET, SECRET)
-            .expect(200, async function (error, response) {
-                try {
-                    await fsp.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + '/' + CATALOG_FOLDER_FILE, fs.constants.R_OK);
-                } catch (error) {
-                    if (error.code === 'ENOENT') {
-                        return done();
-                    } else {
-                        return done(error.message);
-                    }
-                }
-                done("File was not deleted!");
-            });
-
-    });
-
-    after(async function() {
+    afterAll(async () => {
+        await app.close();
         try {
-            await fsp.rmdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
-        } catch (error) {}
+            await fs.rmdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+        } catch (error) {
+            // ignore
+        }
+    });
+
+    it('responds with 404 for invalid catalog name', async () => {
+        const response = await app.inject({
+            method: 'DELETE',
+            path: '/catalog/invalidCatalogName/' + CATALOG_FOLDER_FILE,
+            headers: headers
+        });
+        assert.equal(response.statusCode, 404);
+    });
+
+    it('responds with 404 for invalid file name', async () => {
+        const response = await app.inject({
+            method: 'DELETE',
+            path: '/catalog/' + CATALOG_FOLDER + '/inexistentFileName',
+            headers: headers
+        });
+        assert.equal(response.statusCode, 404);
+    });
+
+    it('responds with 200 for valid request', async () => {
+        const response = await app.inject({
+            method: 'DELETE',
+            path: '/catalog/' + CATALOG_FOLDER + '/' + CATALOG_FOLDER_FILE,
+            headers: headers
+        });
+        assert.equal(response.statusCode, 200);
+
+        try {
+            await fs.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + '/' + CATALOG_FOLDER_FILE, fs.constants.R_OK);
+            throw new Error('File was not deleted!');
+        } catch (error) {
+            if (error.code !== 'ENOENT') {
+                throw error;
+            }
+        }
+
     });
 
 });

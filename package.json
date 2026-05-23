@@ -4,7 +4,8 @@
   "description": "Private (Atlas) Cloud for Vagrant Boxes",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --exit test/routes/*",
+    "test": "jest test/routes",
+    "test:e2e": "jest test/e2e",
     "start": "node index.js >> server.log 2>&1"
   },
   "engines": {
@@ -19,9 +20,7 @@
     "fastify-plugin": "^5.1.0"
   },
   "devDependencies": {
-    "got": "^15.0.2",
-    "mocha": "^11.3.0",
-    "supertest": "^7.2.2"
+    "jest": "^29.7.0"
   },
   "repository": {
     "type": "git",

@@ -1,10 +1,10 @@
-const request = require('supertest');
 const app = require('../../src/server.js');
 const config = require('config');
 const fs = require('fs');
 const child_process = require('child_process');
 const stream = require('stream');
-const assert = require('assert');
+const assert = require("assert");
+const path = require('path');
 
 const STORAGE_FOLDER = config.get('storage.path');
 const CATALOG_FOLDER = "testFolder";
@@ -13,18 +13,17 @@ const SECRET = config.get('upload.secret');
 const CATALOG_URL = '/catalog/' + CATALOG_FOLDER + "/manifest.json";
 const BOX_URL = '/catalog/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE;
 const CWD = __dirname;
-const VAGRANT_FILE_PATH = CWD + "/Vagrantfile";
+const VAGRANT_FILE_PATH = path.resolve(CWD + "/Vagrantfile");
 const ALPINE_BOX_URL = "https://vagrantcloud.com/alpine/boxes/alpine64/versions/3.7.0/providers/virtualbox.box";
-const ALPINE_BOX_PATH = CWD + "/alpine.box"
+const ALPINE_BOX_PATH = path.resolve(CWD + "/alpine.box");
 const SERVER_HOST = config.get('server.host');
 const SERVER_PORT = config.get('server.port');
 
-describe('End-to-end testing', function () {
+describe('End-to-end testing', () => {
 
-    this.bail(true);
-    this.timeout(60_000);
+    jest.setTimeout(60_000);
 
-    before(async () => {
+    beforeAll(async () => {
         await app.listen({
             port: SERVER_PORT,
             host: SERVER_HOST,
@@ -32,34 +31,38 @@ describe('End-to-end testing', function () {
         await cleanUp();
     });
 
-    it("Download Alpine box (if necessary)", (done) => {
-        if (fs.existsSync(ALPINE_BOX_PATH)) {
-            return done();
+    it("Download Alpine box (if necessary)", async () => {
+        if(fs.existsSync(ALPINE_BOX_PATH)) {
+            return; // exit method if file already exist
         }
-        import('got').then(module => {
-            const readStream = module.got.stream(ALPINE_BOX_URL);
-            const writeStream = fs.createWriteStream(ALPINE_BOX_PATH);
-            stream.pipeline([readStream, writeStream], done);
-        }).catch(error => {
-            console.error(error);
-            done(error);
-        });
+
+        const response = await fetch(ALPINE_BOX_URL);
+        const writeStream = fs.createWriteStream(ALPINE_BOX_PATH);
+        await stream.promises.finished(stream.Readable.fromWeb(response.body).pipe(writeStream));
     });
 
-    it("Upload Alpine box to Vagrant Private Cloud server", (done) => {
-        // TODO: check if we really need to upload it
-        request(app.server)
-            .post(BOX_URL)
-            .auth(SECRET, SECRET)
-            .attach('box', ALPINE_BOX_PATH)
-            .expect(200, function (error, response) {
-                fs.accessSync(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK);
-                const localStat = fs.statSync(ALPINE_BOX_PATH);
-                const serverStat = fs.statSync(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
-                assert.notEqual(serverStat.size, 0, "Uploaded file seems empty!");
-                assert.equal(serverStat.size, localStat.size, "Size does not match!");
-                done();
-            });
+    it("Upload Alpine box to Vagrant Private Cloud server", async () => {
+
+        const payload = new FormData();
+        payload.append('box', await fs.openAsBlob(ALPINE_BOX_PATH), 'alpine.box');
+
+        const headers = {
+            authorization: 'Basic ' + Buffer.from("someUser:" + SECRET).toString('base64')
+        };
+
+        const response = await app.inject({
+            method: 'POST',
+            path: BOX_URL,
+            payload: payload,
+            headers: { ...headers, 'content-type': 'application/x-www-form-urlencoded' },
+        });
+
+        assert.equal(response.statusCode, 200);
+        await fs.promises.access(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE, fs.constants.R_OK);
+        const localStat = await fs.promises.stat(ALPINE_BOX_PATH);
+        const serverStat = await fs.promises.stat(STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE);
+        assert.ok(serverStat.size !== 0, 'Uploaded file size should not be zero');
+        assert.ok(serverStat.size === localStat.size, 'Uploaded file size should math original file size');
     });
 
     it("Create Vagrantfile", async () => {
@@ -78,7 +81,7 @@ Vagrant.configure("2") do |config|
     config.vm.box_check_update = true
 end
 `;
-        fs.writeFileSync(VAGRANT_FILE_PATH, content);
+        await fs.promises.writeFile(VAGRANT_FILE_PATH, content);
     });
 
     it('Test catalog URL', async () => {
@@ -99,17 +102,19 @@ end
 
     });
 
-    it("Run 'vagrant up'", (done) => {
-        const result = child_process.exec(`vagrant up`, {cwd: CWD}, (error, stdout, stderr) => {
-            if (error) {
-                return done(new Error(stderr));
-            } else {
-                done();
-            }
+    it("Run 'vagrant up'", () => {
+        return new Promise((resolve, reject) => {
+            const result = child_process.exec(`vagrant up`, {cwd: CWD}, (error, stdout, stderr) => {
+                if (error) {
+                    reject(new Error(stderr));
+                } else {
+                    resolve();
+                }
+            });
         });
     });
 
-    after(async () => {
+    afterAll(async () => {
         if (app.server.address()) {
             await app.close();
         }
