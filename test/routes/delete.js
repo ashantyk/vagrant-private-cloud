@@ -16,7 +16,9 @@ describe('DELETE /catalog/:folder/:file', () => {
 
     beforeAll(async () => {
         try {
-            await fs.mkdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER);
+            await fs.mkdir(STORAGE_FOLDER + '/' + CATALOG_FOLDER, {
+                recursive: true,
+            });
             await fs.copyFile('test/dummyFile.box', STORAGE_FOLDER + '/' + CATALOG_FOLDER + "/" + CATALOG_FOLDER_FILE)
         } catch (error) {
             // ignore

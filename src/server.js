@@ -1,4 +1,4 @@
-const server = require('fastify');
+const {LogController, fastify} = require('fastify');
 const multipartPlugin = require('@fastify/multipart');
 const storagePlugin = require('./plugins/storage.js');
 const config = require('config');
@@ -10,21 +10,23 @@ const STORAGE_FOLDER = config.get('storage.path');
 const UPLOAD_MAX_FILE_SIZE = config.get('upload.maxSize');
 const PLUGINS_READY_TIMEOUT = config.get('plugins.readyTimeout');
 
-const fastify = server({
+const server = fastify({
     logger: {
         level: LOGGER_LEVEL,
         file: LOGGER_FILE
     },
-    disableRequestLogging: LOGGER_LEVEL !== 'debug',
+    logController: new LogController({
+        disableRequestLogging: LOGGER_LEVEL !== 'debug'
+    }),
     modifyCoreObjects: false,
     pluginTimeout: PLUGINS_READY_TIMEOUT
 });
 
-fastify.register(storagePlugin, {
+server.register(storagePlugin, {
     folder: STORAGE_FOLDER
 });
 
-fastify.register(multipartPlugin, {
+server.register(multipartPlugin, {
     limits: {
         fieldNameSize: 10,    // Max field name size in bytes
         fieldSize: 30,        // Max field value size in bytes
@@ -36,7 +38,7 @@ fastify.register(multipartPlugin, {
 });
 
 routes.forEach((route) => {
-    fastify.route(route);
+    server.route(route);
 });
 
-module.exports = fastify;
+module.exports = server;
